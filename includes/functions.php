@@ -126,41 +126,66 @@ function check_duplicate(object $pdo, string $type_, string $name_) {
 function getRecordCount($pdo, $searchTermLike, $category = null, $tag = null, $date_from = null, 
                         $date_to = null, $price_from = null, $price_to = null) {
     $query = "SELECT COUNT(DISTINCT products.id) FROM products";
-    $conditions = ["product_name LIKE :search_term"];
+    $conditions = ["products.product_name LIKE :search_term"];
     $params = [':search_term' => $searchTermLike];
     
+    // Handle category filtering if it's an array
     if ($category) {
-        $query .= " JOIN product_property pp1 ON products.id = pp1.product_id AND pp1.property_id = :category";
-        $params[':category'] = $category;
-    }
-    if ($tag) {
-        $query .= " JOIN product_property pp2 ON products.id = pp2.product_id AND pp2.property_id = :tag";
-        $params[':tag'] = $tag;
+        $categoryPlaceholders = implode(',', array_map(function ($index) {
+            return ':category' . $index;
+        }, array_keys($category)));
+        
+        $query .= " JOIN product_property pp1 ON products.id = pp1.product_id AND pp1.property_id IN ($categoryPlaceholders)";
+        
+        foreach ($category as $index => $category_id) {
+            $params[':category' . $index] = $category_id;
+        }
     }
 
+    // Handle tag filtering if it's an array
+    if ($tag) {
+        $tagPlaceholders = implode(',', array_map(function ($index) {
+            return ':tag' . $index;
+        }, array_keys($tag)));
+        
+        $query .= " JOIN product_property pp2 ON products.id = pp2.product_id AND pp2.property_id IN ($tagPlaceholders)";
+        
+        foreach ($tag as $index => $tag_id) {
+            $params[':tag' . $index] = $tag_id;
+        }
+    }
+
+    // Date range filter
     if ($date_from && $date_to) {
-        $conditions[] = "date BETWEEN :date_from AND :date_to";
+        $conditions[] = "products.date BETWEEN :date_from AND :date_to";
         $params[':date_from'] = $date_from;
         $params[':date_to'] = $date_to;
     }
 
+    // Price range filter
     if ($price_from && $price_to) {
-        $conditions[] = "price BETWEEN :price_from AND :price_to";
+        $conditions[] = "products.price BETWEEN :price_from AND :price_to";
         $params[':price_from'] = $price_from;
         $params[':price_to'] = $price_to;
     }
 
-    if (!empty($conditions)) {
+    // Combine all conditions
+    if (count($conditions) > 0) {
         $query .= " WHERE " . implode(" AND ", $conditions);
     }
 
+    // Prepare and execute the query
     $stmt = $pdo->prepare($query);
     foreach ($params as $key => $value) {
-        $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        $stmt->bindValue($key, $value);
     }
     $stmt->execute();
+
+    // Return the total record count
     return $stmt->fetchColumn();
 }
+
+
 
 function select_all_products(object $pdo)  {
     $query = "SELECT * FROM products";

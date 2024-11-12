@@ -151,34 +151,39 @@ table thead .date{
                     <option value="ASC">ASC</option>
                     <option value="DESC">DESC</option>
                 </select>
-                <select class="ui dropdown" id="category">
-                    <option value="0">Category</option>
-                    <?php
-                    $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'category'";
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute();
-                    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    $selectedCategory = $_GET['category'] ?? 0;
-                    foreach ($categories as $category) {
-                        $selected = ($category['id'] == $selectedCategory) ? 'selected' : '';
-                        echo "<option $selected value=\"{$category['id']}\">" . htmlspecialchars($category['name_']) . "</option>";
-                    }
-                    ?>
-                </select>
-                <select class="ui dropdown select_tag" id="tag">
-                    <option value="0">Select Tag</option>
-                    <?php
-                    $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'tag'";
-                    $stmt = $pdo->prepare($query);
-                    $stmt->execute();
-                    $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    $selectedTag = $_GET['tag'] ?? 0;
-                    foreach ($tags as $tag) {
-                        $selected = ($tag['id'] == $selectedTag) ? 'selected' : '';
-                        echo "<option $selected value=\"{$tag['id']}\">" . htmlspecialchars($tag['name_']) . "</option>";
-                    }
-                    ?>
-                </select>
+                <select class="ui dropdown" id="category" name="category[]" multiple>
+                <option value="0">Category</option>
+                <?php
+                $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'category'";
+                $stmt = $pdo->prepare($query);
+                $stmt->execute();
+                $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $selectedCategory = $_GET['category'] ?? [];
+                foreach ($categories as $category) {
+                    $selected = in_array($category['id'], $selectedCategory) ? 'selected' : '';
+                    echo "<option $selected value=\"{$category['id']}\">" . htmlspecialchars($category['name_']) . "</option>";
+                }
+                ?>
+            </select>
+
+            <select class="ui dropdown select_tag" id="tag" name="tag[]" multiple>
+                <option value="0">Select Tag</option>
+                <?php
+                $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'tag'";
+                $stmt = $pdo->prepare($query);
+                $stmt->execute();
+                $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $selectedTag = $_GET['tag'] ?? [];
+                foreach ($tags as $tag) {
+                    // Kiểm tra xem tag có trong mảng selectedTag không
+                    $selected = in_array($tag['id'], $selectedTag) ? 'selected' : '';
+                    echo "<option $selected value=\"{$tag['id']}\">" . htmlspecialchars($tag['name_']) . "</option>";
+                }
+                ?>
+            </select>
+
+
+
                 <div class="ui input"><input type="date" id="date_from"></div>
                 <div class="ui input"><input type="date" id="date_to"></div>
                 <div class="ui input"><input  onkeypress="return isNumber(event)" type="number" id="price_from" placeholder="price from"></div>
@@ -311,20 +316,17 @@ table thead .date{
         $total_records = $count_stmt->fetchColumn();
         $total_pages = ceil($total_records / $per_page_record);
 
-        // Previous button
         if ($page > 1) {
             echo '<a class="none_pagination item pagination-link active" data-page="' . ($page - 1) . '">Prev</a>';
         } else {
             echo '<a class="item disabled">Prev</a>';
         }
 
-        // Pagination number links
         for ($i = 1; $i <= $total_pages; $i++) {
             $active_class = ($i == $page) ? 'active' : '';
             echo '<a class="none_pagination item pagination-link ' . $active_class . '" data-page="' . $i . '">' . $i . '</a>';
         }
 
-        // Next button
         if ($page < $total_pages) {
             echo '<a class="none_pagination item pagination-link" data-page="' . ($page + 1) . '">Next</a>';
         } else {
@@ -360,7 +362,6 @@ $(document).on('click', '.pagination-link', function() {
 });
 
 $(document).ready(function () {
-    // Event listener for pagination links
     $(document).on('click', '.pagination-link', function (e) {
         e.preventDefault();
         var page = $(this).data('page');
@@ -368,12 +369,10 @@ $(document).ready(function () {
     });
    
 
-    // Event listener for filter button
     $('#applyFilters').click(function() {
-        loadPage(1); // Reset to the first page on filter change
+        loadPage(1); 
     });
 
-    // Function to load specific page data
     function loadPage(page) {
         var search = $('#search').val();
         var sort_by = $('#sort_by').val();

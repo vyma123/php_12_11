@@ -29,19 +29,21 @@ $allowed_sort_columns = ['id', 'product_name', 'price'];
 $sort_by = isset($_GET['sort_by']) && in_array($_GET['sort_by'], $allowed_sort_columns) ? $_GET['sort_by'] : 'id';
 $allowed_order_directions = ['ASC', 'DESC'];
 $order = isset($_GET['order']) && in_array($_GET['order'], $allowed_order_directions) ? $_GET['order'] : 'ASC';
-$category = $_GET['category'] ?? 0;
-$tag = $_GET['tag'] ?? 0;
-$category_page = $_GET['category'] ?? 0;
-$tag_page = $_GET['tag'] ?? 0;
-$tag = $_GET['tag'] ?? 0;
+// $category = isset($_GET['category']) ? $_GET['category'] : [];
+// $tag = isset($_GET['tag']) ? $_GET['tag'] : [];
+// $tag = $_GET['tag'] ?? 0;
 $date_from = $_GET['date_from'] ?? null;
 $date_to = $_GET['date_to'] ?? null;
 $price_from = $_GET['price_from'] ?? null;
 $price_to = $_GET['price_to'] ?? null;
 
+$category = isset($_GET['category']) ? $_GET['category'] : [];  // Mảng category
+$tag = isset($_GET['tag']) ? $_GET['tag'] : [];  // M
+
+echo implode(", ", $category);
+echo implode(", ", $tag);
 
 
-// Bắt đầu xây dựng truy vấn SQL
 $query = "
 SELECT products.*, 
     GROUP_CONCAT(DISTINCT p_tags.name_ SEPARATOR ', ') AS tags, 
@@ -57,15 +59,22 @@ LEFT JOIN property g_images ON pp_gallery.property_id = g_images.id AND g_images
 WHERE products.product_name LIKE :search_term
 ";
 
-// Thêm các điều kiện nếu có
-if ($category != 0) {
-    $query .= " AND pp_categories.property_id = :category_id";
+
+
+
+if (!empty($category) && $category[0] != 0) {
+    $categoryPlaceholders = implode(',', array_map(function ($index) {
+        return ':category' . $index;
+    }, array_keys($category)));
+    $query .= " AND pp_categories.property_id IN ($categoryPlaceholders)";
 }
 
-if ($tag != 0) {
-    $query .= " AND pp_tags.property_id = :tag_id";
+if (!empty($tag) && $tag[0] != 0) {
+    $tagPlaceholders = implode(',', array_map(function ($index) {
+        return ':tag' . $index;
+    }, array_keys($tag)));
+    $query .= " AND pp_tags.property_id IN ($tagPlaceholders)";
 }
-
 if (!empty($gallery)) {
     $query .= " AND g_images.name_ LIKE :gallery"; 
 }
@@ -101,14 +110,18 @@ $stmt = $pdo->prepare($query);
 $searchTermLike = "%$searchTerm%";
 $stmt->bindParam(':search_term', $searchTermLike, PDO::PARAM_STR);
 
-if ($category != 0) {
-    $stmt->bindParam(':category_id', $category, PDO::PARAM_INT);
+if (!empty($category) && $category[0] != 0) {
+    foreach ($category as $index => $category_id) {
+        $stmt->bindValue(':category' . $index, $category_id, PDO::PARAM_INT);
+    }
 }
 
-if ($tag != 0) {
-    $stmt->bindParam(':tag_id', $tag, PDO::PARAM_INT);
+// Bind tag parameters
+if (!empty($tag) && $tag[0] != 0) {
+    foreach ($tag as $index => $tag_id) {
+        $stmt->bindValue(':tag' . $index, $tag_id, PDO::PARAM_INT);
+    }
 }
-
 // if (!empty($gallery)) {
 //     $galleryLike = "%$gallery%";
 //     $stmt->bindParam(':gallery', $galleryLike, PDO::PARAM_STR);
@@ -171,7 +184,9 @@ echo "
 </thead>
 ";
 echo "<tbody>";
-foreach ($results as $row) {
+if (count($results) > 0) {
+    foreach ($results as $row) {
+        
     echo "<tr>";
     echo "<td>" . htmlspecialchars($row['date']) . "</td>";
     echo "<td>" . htmlspecialchars($row['product_name']) . "</td>";
@@ -204,6 +219,10 @@ foreach ($results as $row) {
     </td>";
 
     echo "</tr>";
+}}else {
+    echo " <tr>
+        <td colspan='9' style='text-align: center;'>Product not found</td>
+    </tr>";
 }
 echo "</tbody>";
 echo "</table>";
@@ -245,19 +264,19 @@ echo '</div>';
 
 <script>
 $(document).ready(function () {
-    // Event listener for pagination links
     $(document).on('click', '.pagination-link', function (e) {
         e.preventDefault();
         var page = $(this).data('page');
         
-        // Chỉ gọi hàm loadPage khi trang hiện tại thay đổi
         if (page !== <?php echo $page; ?>) {
             loadPage(page);
         }
     });
 
-    // Function to load specific page data
     function loadPage(page) {
+
+        var categoryString = '<?php echo implode(",", $category); ?>';
+    var tagString = '<?php echo implode(",", $tag); ?>';
         $.ajax({
             url: 'filter_products.php',
             type: 'GET',
@@ -266,8 +285,8 @@ $(document).ready(function () {
                 search: '<?php echo $searchTermLike; ?>',
                 sort_by: '<?php echo $sort_by; ?>',
                 order: '<?php echo $order; ?>',
-                category: '<?php echo $category; ?>',
-                tag: '<?php echo $tag; ?>',
+                category: categoryString,
+                tag: categoryString,
                 date_from: '<?php echo $date_from; ?>',
                 date_to: '<?php echo $date_to; ?>',
                 price_from: '<?php echo $price_from; ?>',
@@ -284,7 +303,6 @@ $(document).ready(function () {
         }); 
     }
 
-    // Xóa loadPage đầu tiên khi tài liệu tải xong
 });
 </script>
 

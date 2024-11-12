@@ -543,21 +543,24 @@ function next(event){
 //pagination
 
 //filter_search
+
+
 function applyFilters(event) {
     event.preventDefault();
 
-	 var section = document.getElementById('box_table');
-	 var section2 = document.getElementById('paginationBox');
+    var section = document.getElementById('box_table');
+    var section2 = document.getElementById('paginationBox');
+    section.style.display = "none";
+    section2.style.display = "none";
 
-	 section.style.display = "none";
-	 section2.style.display = "none"; 
+   
+    const category = $('#category').val();  
+    const tag = $('#tag').val();
 
 	
     const search = document.getElementById("search").value;
     const sortBy = document.getElementById("sort_by").value;
     const order = document.getElementById("order").value;
-    const category = document.getElementById("category").value;
-    const tag = document.getElementById("tag").value;
     const dateFrom = document.getElementById("date_from").value;
     const dateTo = document.getElementById("date_to").value;
     const priceFrom = document.getElementById("price_from").value;
@@ -568,13 +571,14 @@ function applyFilters(event) {
         search: search || '', 
         sort_by: sortBy,
         order: order,
-        category: category,
-        tag: tag,
         date_from: dateFrom,
         date_to: dateTo,
         price_from: priceFrom,
         price_to: priceTo,
-        gallery: gallery
+        gallery: gallery,
+		category: category || [],  
+        tag: tag || [] 
+		
     };
 
     $.ajax({
@@ -583,12 +587,14 @@ function applyFilters(event) {
         data: data,  
         success: function(response) {
             $('#productTableBody').html(response); 
+
         },
         error: function(error) {
             console.error("Error loading data:", error);
         }
     });
 }
+
 
   
   function isNumber(evt) {
