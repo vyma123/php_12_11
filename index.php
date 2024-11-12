@@ -117,6 +117,7 @@ table thead .date{
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/semantic.min.css"  />
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+    
 
     <title>PHP1</title>
 </head>
@@ -151,6 +152,7 @@ table thead .date{
                     <option value="ASC">ASC</option>
                     <option value="DESC">DESC</option>
                 </select>
+                
                 <select class="ui dropdown" id="category" name="category[]" multiple>
                 <option value="0">Category</option>
                 <?php
@@ -338,11 +340,11 @@ table thead .date{
 
 
 </section>
+
+
 <script src="./jquery/my_jquery_functions.js">
-
-   
-
 </script>
+
 <script>
 
 $(document).on('click', '.none_pagination', function() {
