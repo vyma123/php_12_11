@@ -545,6 +545,18 @@ function next(event){
 //filter_search
 
 
+let debounceTimeout;
+let currentRequest = null;
+
+function loadApplyFilters(event) {
+	clearTimeout(debounceTimeout);
+
+	debounceTimeout = setTimeout(() => {
+		applyFilters(event);
+	}, 400);
+}
+
+
 function applyFilters(event) {
     event.preventDefault();
 
@@ -612,3 +624,5 @@ function applyFilters(event) {
 
     return true;  
 }
+
+

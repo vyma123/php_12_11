@@ -99,7 +99,10 @@ table thead .date{
 }
 
 .select_tag{
-    width: 100px;
+    width: 140px  !important;
+}
+.select_category{
+    width: 140px  !important;
 }
 .box_table{
 
@@ -109,6 +112,16 @@ table thead .date{
 }
 
 
+.category_boxx{
+    width: 115px;
+    position: relative;
+}
+
+.category_boxx .dropdown{
+    position: absolute !important;
+    width: 115px;
+
+}
 
 
 
@@ -138,7 +151,7 @@ table thead .date{
                     <a href="#" class="ui button">Sync online</a>
                 </div>
                 <div class="ui icon input">
-                    <input id="search" type="text" placeholder="Search product..." value="">
+                    <input id="search" type="text"  oninput="loadApplyFilters(event)" placeholder="Search product..." value="">
                     <i onclick="applyFilters(event)"  class="inverted circular search link icon"></i>
                 </div>
             </div>
@@ -152,9 +165,11 @@ table thead .date{
                     <option value="ASC">ASC</option>
                     <option value="DESC">DESC</option>
                 </select>
-                
-                <select class="ui dropdown" id="category" name="category[]" multiple>
-                <option value="0">Category</option>
+
+                <div class="category_boxx">
+
+                <select name="category[]" id="category" class="ui fluid search dropdown select_category" multiple="">
+                <option value="">Category</option>
                 <?php
                 $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'category'";
                 $stmt = $pdo->prepare($query);
@@ -166,10 +181,11 @@ table thead .date{
                     echo "<option $selected value=\"{$category['id']}\">" . htmlspecialchars($category['name_']) . "</option>";
                 }
                 ?>
-            </select>
-
-            <select class="ui dropdown select_tag" id="tag" name="tag[]" multiple>
-                <option value="0">Select Tag</option>
+        </select>
+        </div>
+        <div class="category_boxx">
+        <select name="category[]" id="tag" class="ui fluid search dropdown select_tag" name="tag[]" multiple="">
+                <option value="">Select Tag</option>
                 <?php
                 $query = "SELECT p.id, p.name_ FROM property p WHERE p.type_ = 'tag'";
                 $stmt = $pdo->prepare($query);
@@ -183,6 +199,7 @@ table thead .date{
                 }
                 ?>
             </select>
+            </div>
 
 
 
@@ -346,6 +363,10 @@ table thead .date{
 </script>
 
 <script>
+    $('#category').dropdown();
+    $('#tag').dropdown();
+
+
 
 $(document).on('click', '.none_pagination', function() {
     $('.pagination_box').css({
