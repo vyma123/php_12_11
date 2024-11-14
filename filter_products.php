@@ -147,7 +147,7 @@ if (!empty($category) || !empty($tag) || (!empty($date_from) && !empty($date_to)
 
 
 
-echo "<div class='box_table'>";
+echo "<div id='filter_box_table' class='box_table2'>";
 echo "<table id='productTables' class='ui compact celled table'>";
 echo "
 <thead>
@@ -160,7 +160,14 @@ echo "
   <th class='gallery_name'>Gallery</th>
   <th >Categories</th>
   <th class='tag_name'>Tags</th>
-  <th>Action</th>
+  <th id='action_box' class='action_box'>
+                <span>Action</span>
+                <div class='box_delete_buttons'>
+                    <a  class='delete_buttons' href='#'>
+                        <i class='trash icon'></i>
+                    </a>
+                </div>
+            </th>
 </tr>
 </thead>
 ";
@@ -178,11 +185,14 @@ if (count($results) > 0) {
     $galleryImages = $row['gallery_images'];
     if (!empty($galleryImages)) {
         $galleryImagesArray = explode(', ', $galleryImages);
-        echo "<td>";
+        echo "<td>
+                <div class='gallery-container'>";
         foreach ($galleryImagesArray as $image) {
             echo "<img height='30' src='./uploads/" . htmlspecialchars($image) . "'>";
         }
-        echo "</td>";
+        echo "
+        </div>
+        </td>";
     } else {
         echo "<td>No gallery images</td>";
     }
@@ -201,7 +211,8 @@ if (count($results) > 0) {
 
     echo "</tr>";
 }}else {
-    echo " <tr>
+    echo "
+    <tr>
         <td colspan='9' style='text-align: center;'>Product not found</td>
     </tr>";
 }
@@ -213,7 +224,7 @@ echo '</div>';
 ?>
 
 
-<div id="paginationBox" class="pagination_box">
+<div id="paginationBox" class="pagination_box fil">
     <div class="ui pagination menu">
         <?php
         $total_pages = ceil($total_records / $per_page_record);
@@ -242,8 +253,53 @@ echo '</div>';
 </div>
 
 
-
 <script>
+
+
+function bindHoverEvents() {
+    $('#tableID').on('mouseover', function() {
+        $('#action_box .box_delete_buttons').css('display', 'block');
+    });
+
+    $('#tableID').on('mouseout', function() {
+        $('#action_box .box_delete_buttons').css('display', 'none');
+    });
+}
+
+
+
+
+$(document).ready(function() {
+    $('#productTables').on('click', '.delete_buttons', function(event) {
+        event.preventDefault();
+        
+        if (confirm('Xác nhận xóa tất cả!')) {
+            $.ajax({
+                url: 'delete.php', 
+                type: 'POST',
+                success: function(response) {
+                    $('#productTables').load(location.href + " #productTables"); 
+                    $('#paginationBox').load(location.href + " #paginationBox"); 
+                },
+                error: function(xhr, status, error) {
+                    alert('Đã xảy ra lỗi: ' + error);
+                }
+            });
+        }
+    });
+    });
+
+    $(document).ready(function() {
+  $('#productTables').on('mouseenter', function() {
+    $('#action_box .box_delete_buttons').show();
+  });
+
+  $('#productTables').on('mouseleave', function() {
+    $('#action_box .box_delete_buttons').hide();
+  });
+});
+
+
 $(document).ready(function () {
     $(document).on('click', '.pagination-link', function (e) {
         e.preventDefault();
@@ -274,8 +330,8 @@ $(document).ready(function () {
                 price_to: '<?php echo $price_to; ?>'
             },
             success: function (response) {
-                var tableData = $(response).find('.box_table').html(); 
-                $('.box_table').html(tableData);
+                var tableData = $(response).find('.box_table2').html(); 
+                $('.box_table2').html(tableData);
 
             },
             error: function () {

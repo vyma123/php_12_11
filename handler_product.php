@@ -104,8 +104,6 @@ if (isset($_POST['action_type'])) {
         
             
         }
-        
-
 
     
         
@@ -139,7 +137,6 @@ if (isset($_POST['action_type'])) {
             echo json_encode($res);
             return;
         }
-
        
 
         if (empty($product_name) || empty($sku) || empty($price)) {
@@ -224,12 +221,13 @@ if (isset($_POST['action_type'])) {
             ];
         }
 
-        if (!isValidInput($sku) && !empty($sku)) {
+        if (!isValidInputSKU($sku)) {
             $errors[] = [
                 'field' => 'sku',
                 'message' => "don't allow special character"
             ];
         }
+
         if (!isValidNumberWithDotInput($price) && !empty($price)) {
             $errors[] = [
                 'field' => 'price',
@@ -242,6 +240,7 @@ if (isset($_POST['action_type'])) {
         $stmt->bindParam(':sku', $sku);
         $stmt->execute();
         $count = $stmt->fetchColumn();
+
         if($count > 0){
             $errors[] = [
                 'field' => 'exist',
@@ -249,14 +248,12 @@ if (isset($_POST['action_type'])) {
             ];
         }
 
-        
-        if (empty($product_name) || empty($sku) || empty($price) || $featured_image['error'] === UPLOAD_ERR_NO_FILE) {
+        if (empty($product_name) || empty($price) || $featured_image['error'] === UPLOAD_ERR_NO_FILE) {
             $errors[] = [
                 'field' => 'empty',
                 'message' => ' At least one field is required.'
             ];
         }
-
 
         if (!empty($errors)) {
             $res = [
@@ -267,26 +264,33 @@ if (isset($_POST['action_type'])) {
             return;
         }
 
-        // Upload featured image và thêm sản phẩm vào cơ sở dữ liệu
         if ($featured_image['error'] === UPLOAD_ERR_OK) {
             $file_name = $featured_image['name'];
             move_uploaded_file($featured_image['tmp_name'], 'uploads/' . $file_name);
+           
+                if(empty($sku)){
+                    function generateSKU() {
+                        function generateRandomLetter() {
+                            return chr(rand(97, 122)); 
+                        }
+                    
+                        $part1 = generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter(); 
+                        $part2 = generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter(); 
+                        $part3 = generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter() . generateRandomLetter(); 
+                        
+                        $sku = $part1 . '-' . $part2 . '-' . $part3;
+                    
+                        return $sku;
+                    }
+                    
+                    
+                    $sku = generateSKU();
+                    $product_id = insert_product($pdo, $product_name, $sku, $price, $file_name);
+                }else{
+                    $product_id = insert_product($pdo, $product_name, $sku, $price, $file_name);
 
-            $query = "SELECT COUNT(*) FROM products WHERE sku = :sku";
-            $stmt = $pdo->prepare($query);
-            $stmt->bindParam(':sku', $sku);
-            $stmt->execute();
-            $count = $stmt->fetchColumn();
-            if($count > 0){
-                $res = [
-                    'status' => 400,
-                    'sku' => 'exist'
-                ];
-                echo json_encode($res);
-                return;
-            }else{
-                $product_id = insert_product($pdo, $product_name, $sku, $price, $file_name);
-            }
+                }
+            
 
             if (!$product_id) {
                 echo json_encode(['status' => 500, 'message' => 'Failed to insert product.']);

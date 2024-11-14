@@ -184,12 +184,7 @@ $(document).on('submit', '#saveProduct', function(e){
         formData.append('featured_image', file); 
     }
 
-	// if ($('#gallery')[0].files.length > 0) {
-    //     $.each($('#gallery')[0].files, function(i, file) {
-    //         formData.append('gallery[]', file); // Append each file with 'gallery[]' name
-    //     });
-    // }
-	 
+
     formData.append("action_type", $('#action_type').val());
 
 	if ($('#action_type').val() === 'edit_product') {
@@ -259,7 +254,7 @@ $(document).on('submit', '#saveProduct', function(e){
 						});
 					}, 2500);
 				}
-				if (error.field === 'empty') {
+				if (error.field === 'exist') {
 					$('#err_valid_Message_sku').removeClass('d-none').fadeIn(400); 
 				setTimeout(function() {
 					$('#err_valid_Message_sku').fadeOut(400, function() {
@@ -273,7 +268,6 @@ $(document).on('submit', '#saveProduct', function(e){
 					$('#product_name').addClass('err_border');
 				} 
 				if (error.field === 'sku') {
-					$('#err_valid_Message_product').removeClass('d-none').fadeIn(400);
 					$('#sku').addClass('err_border');
 				}
 				if (error.field === 'price') {
@@ -288,7 +282,6 @@ $(document).on('submit', '#saveProduct', function(e){
 					$('#err_valid_Message_sku').removeClass('d-none').fadeIn(400);
 					$('#sku').addClass('err_border');
 				}
-				
 			});
 			
 			}
@@ -300,13 +293,32 @@ $(document).on('submit', '#saveProduct', function(e){
 					$('#featured_image').val(''); 
 					$('#galleryPreviewContainer').empty();
 					$('#saveProduct')[0].reset();
-					$('#tableID').load(location.href + " #tableID");
-					
+
 					setTimeout(function() {
 						$('#okMessage_product').fadeOut(400, function() {
 							$(this).addClass('d-none');
 						});
 					}, 2000);
+
+					var currentPage = $('.pagination-link.active').data('page');
+
+					
+					
+					$('#tableID').load(location.href + " #tableID", function() {
+						bindHoverEvents();
+                    });					
+					$('#paginationBox').load(location.href + " #paginationBox > *", function() {
+						console.log(currentPage);
+					});
+
+					$('#box_table2').load(location.href + " #box_table2", function() {
+						bindHoverEvents();
+                    });		
+
+
+
+				
+
 				}else if(res.action == 'edit'){
 
 					$('#featured_image').val(''); 
@@ -598,7 +610,7 @@ function applyFilters(event) {
         type: 'GET',
         data: data,  
         success: function(response) {
-            $('#productTableBody').html(response); 
+            $('#box_table2').html(response); 
 
         },
         error: function(error) {

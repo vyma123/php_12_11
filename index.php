@@ -110,6 +110,12 @@ table thead .date{
     overflow-y: auto;  
     margin-bottom: 20px; 
 }
+.box_table2{
+
+height: 400px;
+overflow-y: auto;  
+margin-bottom: 20px; 
+}
 
 
 .category_boxx{
@@ -122,6 +128,35 @@ table thead .date{
     width: 115px;
 
 }
+
+
+.action_box{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    justify-content: space-around;
+}
+
+#action_box .box_delete_buttons {
+  display: none; 
+  left: 5rem;
+}
+
+.gallery_name{
+    width: 200px;
+}
+
+/* Thêm phần tử chứa hình ảnh */
+.gallery-container {
+    white-space: nowrap;   /* Không cho hình ảnh xuống dòng */
+    overflow-x: auto;      /* Hiển thị thanh cuộn ngang khi cần thiết */
+    max-width: 200px;      /* Đặt chiều rộng tối đa của phần chứa là 200px */
+}
+
+.gallery-container img {
+    display: inline-block; /* Đảm bảo hình ảnh hiển thị theo dạng ngang */
+}
+
 
 
 
@@ -146,13 +181,12 @@ table thead .date{
         <div class="product_header">
             <div class="product_header_top">
                 <div>
-                    <button id="add_product" class="ui primary button">Add product</button>
+                    <button id="add_product" class="ui primary button" >Add product</button>
                     <button id="add_property" class="ui button">Add property</button>
                     <a href="#" class="ui button">Sync online</a>
                 </div>
                 <div class="ui icon input">
                     <input id="search" type="text"  oninput="loadApplyFilters(event)" placeholder="Search product..." value="">
-                    <i onclick="applyFilters(event)"  class="inverted circular search link icon"></i>
                 </div>
             </div>
             <div class="product_header_bottom">
@@ -212,116 +246,126 @@ table thead .date{
         </div>
      
         <!-- table -->
-         <div id="productTableBody"></div>
+         <div id="box_table2"></div>
 
          <div id="box_table" class="box_table table_index">
 
-<table id="tableID" class="ui compact celled table ">
-<thead>
-<tr>
-  <th class="date">Date</th>
-  <th class="prd_name">Product name</th>
-  <th>SKU</th>
-  <th>Price</th>
-  <th>Feature Image</th>
-  <th class="gallery_name">Gallery</th>
-  <th >Categories</th>
-  <th class="tag_name">Tags</th>
-  <th>Action</th>
-</tr>
-</thead>
-<tbody id="productTableBody">
-<?php 
-    if (isset($_GET["page"])) {    
-        $page  = $_GET["page"];    
-    } else {    
-        $page=1;    
-      }    
-    
-      
-      if (count($results) > 0) {
-        foreach ($results as $row){
-          $product_id = $row['id']; ?>
+            <table id="tableID" class="ui compact celled table ">
+            <thead>
+            <tr>
+            <th class="date">Date</th>
+            <th class="prd_name">Product name</th>
+            <th>SKU</th>
+            <th>Price</th>
+            <th>Feature Image</th>
+            <th class="gallery_name">Gallery</th>
+            <th >Categories</th>
+            <th class="tag_name">Tags</th>
+            <th id="action_box" class="action_box">
+                <span>Action</span>
+                <div class="box_delete_buttons">
+                    <a  class="delete_buttons" >
+                        <i class="trash icon"></i>
+                    </a>
+                </div>
+            </th>
+            </tr>
+            </thead>
+            <tbody id="productTableBody">
+            <?php 
+                if (isset($_GET["page"])) {    
+                    $page  = $_GET["page"];    
+                } else {    
+                    $page=1;    
+                }    
+                
+                
+                if (count($results) > 0) {
+                    foreach ($results as $row){
+                    $product_id = $row['id']; ?>
 
 
- <tr>
- <td><?php echo htmlspecialchars($row['date'])?></td>
-  <td class="product_name"><?php echo htmlspecialchars($row['product_name'])?></td>
-  <td class="sku"><?php echo htmlspecialchars($row['sku'])?></td>
-  <td><?php echo htmlspecialchars($row['price'])?></td>
-  <td>
-      <img height="30" src="./uploads/<?php echo $row['featured_image']; ?>">
-  </td>
-  <td class="gallery_images">
-          <?php 
-        $query = "SELECT p.name_ FROM product_property pp
-                JOIN property p ON pp.property_id = p.id
-                WHERE pp.product_id = :product_id AND p.type_ = 'gallery'";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
-        $stmt->execute();
-        $galleryImages = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        foreach ($galleryImages as $image) {?> 
-    <img  height="40" src="./uploads/<?= $image['name_'] ?>">
-  <?php }?>
-  </td>
-  <td>
-  <?php 
-        $query = "SELECT p.name_ FROM product_property pp
-                JOIN property p ON pp.property_id = p.id
-                WHERE pp.product_id = :product_id AND p.type_ = 'category'";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
-        $stmt->execute();
-        $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $totalCategories = count($categories);
-        foreach ($categories as $index => $category) {?> 
-        <span><?php echo htmlspecialchars($category['name_']);
-                if($index < $totalCategories -1 ){
-                    echo ', ';
-                }
-               ?></span>
-        <?php }?>
-  </td>
-  <td>
-  <?php 
-        $query = "SELECT p.name_ FROM product_property pp
-                JOIN property p ON pp.property_id = p.id
-                WHERE pp.product_id = :product_id AND p.type_ = 'tag'";
-        $stmt = $pdo->prepare($query);
-        $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
-        $stmt->execute();
-        $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $totalTags = count($tags);
-        foreach ($tags as $index => $tag) {?> 
-        <span><?php echo htmlspecialchars($tag['name_']);
-                if($index < $totalTags -1 ){
-                    echo ', ';
-                }
-               ?></span>
-        <?php }?>
-  </td>
-  <td>
-  <input  type="hidden" name="id" id="id">
+            <tr>
+            <td><?php echo htmlspecialchars($row['date'])?></td>
+            <td class="product_name"><?php echo htmlspecialchars($row['product_name'])?></td>
+            <td class="sku"><?php echo htmlspecialchars($row['sku'])?></td>
+            <td><?php echo htmlspecialchars($row['price'])?></td>
+            <td>
+                <img height="30" src="./uploads/<?php echo $row['featured_image']; ?>">
+            </td>
+            <td class="gallery_images">
+                <div class="gallery-container">
+
+                    <?php 
+                    $query = "SELECT p.name_ FROM product_property pp
+                            JOIN property p ON pp.property_id = p.id
+                            WHERE pp.product_id = :product_id AND p.type_ = 'gallery'";
+                    $stmt = $pdo->prepare($query);
+                    $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $galleryImages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    foreach ($galleryImages as $image) {?> 
+                <img  height="40" src="./uploads/<?= $image['name_'] ?>">
+                <?php }?>
+            </div>
+            </td>
+            <td>
+            <?php 
+                    $query = "SELECT p.name_ FROM product_property pp
+                            JOIN property p ON pp.property_id = p.id
+                            WHERE pp.product_id = :product_id AND p.type_ = 'category'";
+                    $stmt = $pdo->prepare($query);
+                    $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $totalCategories = count($categories);
+                    foreach ($categories as $index => $category) {?> 
+                    <span><?php echo htmlspecialchars($category['name_']);
+                            if($index < $totalCategories -1 ){
+                                echo ', ';
+                            }
+                        ?></span>
+                    <?php }?>
+            </td>
+            <td>
+            <?php 
+                    $query = "SELECT p.name_ FROM product_property pp
+                            JOIN property p ON pp.property_id = p.id
+                            WHERE pp.product_id = :product_id AND p.type_ = 'tag'";
+                    $stmt = $pdo->prepare($query);
+                    $stmt->bindParam(':product_id', $product_id, PDO::PARAM_INT);
+                    $stmt->execute();
+                    $tags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    $totalTags = count($tags);
+                    foreach ($tags as $index => $tag) {?> 
+                    <span><?php echo htmlspecialchars($tag['name_']);
+                            if($index < $totalTags -1 ){
+                                echo ', ';
+                            }
+                        ?></span>
+                    <?php }?>
+            </td>
+            <td>
+            <input  type="hidden" name="id" id="id">
 
 
-    <button type="submit"   value="<?= $row['id']?>" class="edit_button" >
-    <i class="edit icon"></i>
-    </button>
-  
-    <a  class="delete_button" href="">
-    <i class="trash icon"></i>
-    </a>
-  </td>
-</tr>
-<?php }}else {?>
-    <tr>
-        <td colspan="9" style="text-align: center;">Product not found</td>
-    </tr>
-    <?php }?>
-</tbody>
-</table>
-</div>
+                <button type="submit"   value="<?= $row['id']?>" class="edit_button" >
+                <i class="edit icon"></i>
+                </button>
+            
+                <a  class="delete_button" href="">
+                <i class="trash icon"></i>
+                </a>
+            </td>
+            </tr>
+            <?php }}else {?>
+                <tr>
+                    <td colspan="9" style="text-align: center;">Product not found</td>
+                </tr>
+                <?php }?>
+            </tbody>
+            </table>
+        </div>
          
         
 
@@ -363,10 +407,60 @@ table thead .date{
 </script>
 
 <script>
+    
+    
+
+
+    function bindHoverEvents() {
+    $('#tableID').on('mouseover', function() {
+        $('#action_box .box_delete_buttons').css('display', 'block');
+    });
+
+    $('#tableID').on('mouseout', function() {
+        $('#action_box .box_delete_buttons').css('display', 'none');
+    });
+}
+
+    
+$('#tableID').load(location.href + " #tableID", function() {
+    console.log('#tableID content loaded');
+    
+    // Gán lại sự kiện click sau khi tải lại nội dung
+    $('#tableID').on('click', '.delete_buttons', function(event) {
+        event.preventDefault();
+        
+        if (confirm('Xác nhận xóa tất cả!')) {
+            $.ajax({
+                url: 'delete.php', 
+                type: 'POST',
+                success: function(response) {
+                    // Tải lại bảng và phân trang
+                    $('#tableID').load(location.href + " #tableID", function() {
+                        console.log('#tableID content reloaded');
+                    });
+
+                    $('#paginationBox').load(location.href + " #paginationBox > *", function() {
+                        console.log('Pagination box reloaded');
+                    });
+                },
+                error: function(xhr, status, error) {
+                    alert('Đã xảy ra lỗi: ' + error);
+                }
+            });
+        }
+    });
+});
+
+    bindHoverEvents();
+
+
+    
+ 
+  
+    // Gọi hàm bindHoverEvents sau khi trang đã sẵn sàng
+
     $('#category').dropdown();
     $('#tag').dropdown();
-
-
 
 $(document).on('click', '.none_pagination', function() {
     $('.pagination_box').css({
@@ -380,8 +474,6 @@ $(document).on('click', '.pagination-link', function() {
     $('.table_index').css({
         'display': 'none'
     });
-
-   
 });
 
 $(document).ready(function () {
@@ -423,7 +515,7 @@ $(document).ready(function () {
                 price_to: price_to
             },
             success: function(response) {
-                $('#productTableBody').html(response);
+                $('#box_table2').html(response);
             }
         });
     }

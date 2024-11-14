@@ -1,7 +1,13 @@
 <?php 
 
 function isValidInput($input){
-    return preg_match('/^[\p{L}0-9 .,–\-]+$/u', $input);
+    return preg_match('/^[\p{L}0-9 .,–\-_]+$/u', $input);
+}
+
+
+function isValidInputSKU($input) {
+    // Match empty string or strings with letters, numbers, and common punctuation
+    return preg_match('/^[\p{L}0-9 .,–\-\s]*$/u', $input);
 }
 
 

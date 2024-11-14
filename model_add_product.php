@@ -87,7 +87,7 @@
     <div class="box_button_add">
       <button id="close_product" class="ui button" type="button">Close</button>
 
-      <button id="addProductButton" class="ui button d-none" type="submit">Add</button>
+      <button id="addProductButton" class="ui button d-none" type="submit" >Add</button>
    
      <button id="editProductButton" class="ui button d-none" type="submit">Edit</button>
 
